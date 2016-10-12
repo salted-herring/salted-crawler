@@ -1,0 +1,13 @@
+{
+  "name": "salted-crawler",
+  "version": "0.0.1",
+  "description": "A simple webcrawler written in JavaScript",
+  "main": "crawler.js",
+  "author": "Stephen",
+  "license": "ISC",
+  "dependencies": {
+    "cheerio": "*",
+    "url-parse": "*",
+    "request": "*"
+  }
+}
