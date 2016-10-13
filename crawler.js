@@ -148,7 +148,7 @@ function collectInternalLinks($) {
     console.log("Found " + relativeLinks.length + " relative links on page");
     relativeLinks.each(function() {
         var uri = $(this).attr('href');
-        if (uri && uri.indexOf('/comments/') < 0 && uri.indexOf('/calendar/') < 0) {
+        if (uri && uri.indexOf('/comments/') < 0 && uri.indexOf('/calendar/') < 0 && uri.indexOf('@') < 0) {
             pagesToVisit.push(baseUrl + uri);
         }
     });
