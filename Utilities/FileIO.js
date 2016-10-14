@@ -12,7 +12,7 @@ exports.initialise = function(hostname) {
 };
 
 exports.append = function(link, filename) {
-    filename = base + '/' + filename;
+    filename = base + '/' + (filename ? filename : HISTORY);
     fs.appendFile(filename, (link.trim().length > 0 ? link + "\n" : ''), 'utf8', function(err) {
         if(err) {
             return console.log(err);

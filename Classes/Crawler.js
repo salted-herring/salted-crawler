@@ -1,46 +1,55 @@
 "use strict";
 class Crawler {
-    constructor(url) {
+    constructor(url, queue, search, writeFunc) {
+        this.queue = queue;
+        this.writeFunc = writeFunc;
+        this.search = search;
+        this.proceed = require('../Utilities/Queue.js').next;
+        this.baseURL = require('../main.js').baseURL;
+        this.processed = require('../Utilities/Queue.js').processed;
+        console.log('about to crawl url: ' + url);
         var request = require('request'),
-            cheerio = require('cheerio');
-        //console.log(url);
+            cheerio = require('cheerio'),
+            self    = this;
         request(url, function(error, response, body) {
-            console.log(response.statusCode);
-        //    // Check status code (200 is HTTP OK)
-        //    console.log("Status code: " + response.statusCode);
-        //    if(response.statusCode !== 200) {
-        //      callback();
-        //      return;
-        //    }
-        //    // Parse the document body
-        //    var $ = cheerio.load(body);
-        //    searchForWord($, SEARCH_WORD, url);
-           //
-        //    collectInternalLinks($);
-        //    // In this short program, our callback is just calling crawl()
-        //    callback();
+            require('../Utilities/Queue.js').activeCralwers--;
+            writeFunc(url);
+            // console.log(response.statusCode);
+            if(response.statusCode === 200) {
+                var $ = cheerio.load(body);
+                self.searchKeywords($, url);
+                self.fetchLinks($);
+            }
+            self.proceed();
         });
     }
 
-    searchForWord($, word, url) {
-      SEARCH_DOMAINS.forEach(function(domain) {
-          if ($(domain).length > 0) {
-              var bodyText = $(domain).html().toLowerCase();
-              if (bodyText.indexOf(word.toLowerCase()) !== -1) {
-                  yell(url, 'found-in-' + domain);
-              }
-          }
-      });
+    searchKeywords($, url) {
+        let search = this.search;
+        let self = this;
+        search.domains.forEach(function(domain) {
+            if ($(domain).length > 0) {
+                var bodyText = $(domain).html().toLowerCase();
+                search.keywords.forEach(function(keyword) {
+                    if (bodyText.indexOf(keyword.toLowerCase()) !== -1) {
+                        self.writeFunc(url, 'Keyword - ' + keyword + ' - found in ' + domain + '.txt');
+                    }
+                });
+            }
+        });
     }
 
-    collectInternalLinks($) {
+    fetchLinks($) {
+        let self = this;
         var relativeLinks = $("a[href^='/']");
         console.log("Found " + relativeLinks.length + " relative links on page");
         relativeLinks.each(function() {
             var uri = $(this).attr('href');
-            if (uri && uri.indexOf('/comments/') < 0 && uri.indexOf('/calendar/') < 0 && uri.indexOf('@') < 0) {
-                pagesToVisit.push(baseUrl + uri);
-            }
+            self.search.ignores.forEach(function(ignore) {
+                if (uri && uri.indexOf(ignore) < 0 && self.queue.indexOf(uri) < 0) {
+                    self.queue.push(self.baseURL + uri);
+                }
+            });
         });
     }
 }
